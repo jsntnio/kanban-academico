@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Kanban Acadêmico - Gestao de Tarefas</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="appRoot">
+    <div id="loginScreen" class="login-container">
+        <div class="login-card">
+            <h2>Kanban Academico</h2>
+            <p>Sistema de gerenciamento de tarefas</p>
+            <input type="email" id="loginEmail" placeholder="E-mail" autocomplete="off">
+            <input type="password" id="loginSenha" placeholder="Senha">
+            <button id="btnLogin" class="btn-primary">Entrar</button>
+            <p class="login-hint">Professor: prof@escola.com / 123 | Aluno: aluno@escola.com / 123</p>
+        </div>
+    </div>
+
+    <div id="dashboardScreen" style="display: none;">
+        <div class="header">
+            <div class="logo">
+                <h1>KanbanBoard</h1>
+                <p>Gestao de Tarefas</p>
+            </div>
+            <div class="user-info">
+                <span class="user-name" id="displayUserName"></span>
+                <span class="user-role" id="displayUserRole"></span>
+                <button id="logoutBtn" class="btn-logout">Sair</button>
+            </div>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="tab-btn active" data-tab="kanban">Quadro Kanban</button>
+            <button class="tab-btn" data-tab="progress" id="progressTabBtn" style="display: none;">Acompanhar Progresso</button>
+            <button class="tab-btn" data-tab="manageStudents" id="manageStudentsTabBtn" style="display: none;">Gerenciar Alunos</button>
+        </div>
+
+        <div class="content">
+            <div id="kanbanTab">
+
+                <div class="filters-bar">
+                    <div class="filter-group">
+                        <label>Status</label>
+                        <select id="filterStatus">
+                            <option value="">Todos</option>
+                            <option value="A Fazer">A Fazer</option>
+                            <option value="Em Andamento">Em Andamento</option>
+                            <option value="Concluido">Concluido</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Prazo ate</label>
+                        <input type="date" id="filterDeadline">
+                    </div>
+                    <div class="filter-group" id="filterAlunoGroup" style="display: none;">
+                        <label>Aluno</label>
+                        <select id="filterAluno">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <button id="resetFiltersBtn" class="btn-reset-filters">Limpar Filtros</button>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 16px;">
+                    <button id="novaTarefaBtn" class="btn-primary">Nova Tarefa</button>
+                </div>
+
+                <div class="kanban-board" id="kanbanBoard"></div>
+            </div>
+
+            <div id="progressTab" style="display: none;">
+                <h3>Progresso dos Alunos por Tarefa</h3>
+                <div id="progressTableContainer"></div>
+            </div>
+
+            <div id="manageStudentsTab" style="display: none;">
+                <h3>Cadastrar novo aluno</h3>
+                <div class="form-card">
+                    <input type="text" id="newStudentName" placeholder="Nome completo">
+                    <input type="email" id="newStudentEmail" placeholder="E-mail">
+                    <input type="password" id="newStudentPass" placeholder="Senha">
+                    <button id="createStudentBtn" class="btn-primary">Cadastrar Aluno</button>
+                </div>
+                <h3 style="margin-top: 28px;">Lista de Alunos</h3>
+                <div id="studentsList"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modalTarefa" class="modal">
+    <div class="modal-content">
+        <h3 id="modalTarefaTitle">Nova Tarefa</h3>
+        <form id="formTarefa">
+            <input type="hidden" id="tarefaId" value="">
+            <div class="form-group">
+                <label>Titulo</label>
+                <input type="text" id="tarefaTitulo" required>
+            </div>
+            <div class="form-group">
+                <label>Descricao</label>
+                <textarea id="tarefaDescricao" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Data de entrega</label>
+                <input type="date" id="tarefaData" required>
+            </div>
+            <div class="form-group" id="selectAlunoGroup" style="display: none;">
+                <label>Aluno</label>
+                <select id="tarefaAlunoId" required></select>
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button type="button" id="fecharModalTarefa" class="btn-secondary">Cancelar</button>
+                <button type="submit" class="btn-primary">Salvar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="modalComentarios" class="modal">
+    <div class="modal-content">
+        <h3>Comentarios da Tarefa</h3>
+        <div id="comentariosList" class="comments-list"></div>
+        <div class="form-group">
+            <label>Novo comentario</label>
+            <textarea id="novoComentario" rows="2" placeholder="Escreva seu comentario..."></textarea>
+        </div>
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button type="button" id="fecharModalComentarios" class="btn-secondary">Fechar</button>
+            <button type="button" id="adicionarComentarioBtn" class="btn-primary">Adicionar</button>
+        </div>
+    </div>
+</div>
+
+<script src="js/storage.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/tasks.js"></script>
+<script src="js/kanban.js"></script>
+<script src="js/progress.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
