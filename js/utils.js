@@ -1,5 +1,4 @@
 function showToast(mensagem, duracao = 3000) {
-    // Remove toast existente para evitar acumulo
     const toastExistente = document.querySelector(".toast-notify");
     if (toastExistente) toastExistente.remove();
     
