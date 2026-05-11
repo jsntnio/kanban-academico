@@ -67,6 +67,11 @@ function atualizarInterfaceAposLogin() {
         if (typeof refreshUI === "function") refreshUI();
         if (typeof preencherFiltroAlunos === "function") preencherFiltroAlunos();
         if (typeof preencherSelectAlunosModal === "function") preencherSelectAlunosModal();
+
+        const activeTab = document.querySelector(".tab-btn.active")?.dataset.tab;
+        if (activeTab === "manageStudents" && typeof renderManageStudents === "function") {
+            renderManageStudents();
+        }
     }
 }
 
@@ -75,7 +80,6 @@ function fazerLogout() {
     sessionStorage.removeItem("currentUser");
     loginScreen.style.display = "flex";
     dashboardScreen.style.display = "none";
-    // Reseta possiveis estados de abas
     if (typeof resetAppState === "function") resetAppState();
 }
 
@@ -88,8 +92,12 @@ function cadastrarAluno(nome, email, senha) {
         showToast("Preencha todos os campos.");
         return false;
     }
+    if (typeof validarEmail === "function" && !validarEmail(email)) {
+        showToast("E-mail inválido.");
+        return false;
+    }
     if (usuarios.some(u => u.email === email)) {
-        showToast("E-mail ja cadastrado.");
+        showToast("E-mail já cadastrado.");
         return false;
     }
     const novoId = usuarios.length > 0 ? Math.max(...usuarios.map(u => u.id)) + 1 : 3;
@@ -107,6 +115,92 @@ function cadastrarAluno(nome, email, senha) {
     if (typeof preencherSelectAlunosModal === "function") preencherSelectAlunosModal();
     if (typeof renderManageStudents === "function") renderManageStudents();
     return true;
+}
+
+function renderManageStudents() {
+    const container = document.getElementById("studentsList");
+    if (!container) return;
+    
+    const alunos = usuarios.filter(u => u.tipo === "aluno");
+    if (alunos.length === 0) {
+        container.innerHTML = "<p>Nenhum aluno cadastrado.</p>";
+        return;
+    }
+    
+    let html = '<ul style="list-style: none; padding: 0;">';
+    alunos.forEach(aluno => {
+        html += `
+            <li style="background: #f8fafc; margin: 8px 0; padding: 10px 16px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <span><strong>${escapeHtml(aluno.nome)}</strong> (${escapeHtml(aluno.email)})</span>
+                <button class="btn-excluir-aluno" data-id="${aluno.id}" style="background: #e07c6c; border: none; padding: 4px 12px; border-radius: 20px; cursor: pointer;">Excluir</button>
+            </li>
+        `;
+    });
+    html += '</ul>';
+    container.innerHTML = html;
+
+    document.querySelectorAll(".btn-excluir-aluno").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            const alunoId = parseInt(btn.dataset.id);
+            excluirAluno(alunoId);
+        });
+    });
+}
+
+function excluirAluno(alunoId) {
+    if (!currentUser || currentUser.tipo !== "professor") return;
+    
+    const temTarefas = tarefas.some(t => t.alunoId === alunoId);
+    if (temTarefas) {
+        showToast("Não é possível excluir um aluno que possui tarefas. Remova ou reatribua as tarefas primeiro.");
+        return;
+    }
+    
+    const index = usuarios.findIndex(u => u.id === alunoId && u.tipo === "aluno");
+    if (index !== -1) {
+        usuarios.splice(index, 1);
+        saveUsers();
+        showToast("Aluno excluído com sucesso.");
+        renderManageStudents();
+        if (typeof preencherFiltroAlunos === "function") preencherFiltroAlunos();
+        if (typeof preencherSelectAlunosModal === "function") preencherSelectAlunosModal();
+        if (typeof renderKanban === "function") renderKanban();
+    }
+}
+
+function initManageStudentsEvents() {
+    const createBtn = document.getElementById("createStudentBtn");
+    if (createBtn) {
+        const newBtn = createBtn.cloneNode(true);
+        createBtn.parentNode.replaceChild(newBtn, createBtn);
+        newBtn.addEventListener("click", () => {
+            const nome = document.getElementById("newStudentName").value.trim();
+            const email = document.getElementById("newStudentEmail").value.trim();
+            const senha = document.getElementById("newStudentPass").value;
+            
+            if (!nome || !email || !senha) {
+                showToast("Preencha todos os campos.");
+                return;
+            }
+            if (typeof validarEmail === "function" && !validarEmail(email)) {
+                showToast("E-mail inválido.");
+                return;
+            }
+            cadastrarAluno(nome, email, senha);
+            document.getElementById("newStudentName").value = "";
+            document.getElementById("newStudentEmail").value = "";
+            document.getElementById("newStudentPass").value = "";
+        });
+    }
+    
+    const manageTabBtn = document.getElementById("manageStudentsTabBtn");
+    if (manageTabBtn) {
+        manageTabBtn.addEventListener("click", () => {
+            if (currentUser && currentUser.tipo === "professor") {
+                renderManageStudents();
+            }
+        });
+    }
 }
 
 function preencherSelectAlunosModal() {
@@ -134,7 +228,7 @@ function initAuthEvents() {
             if (fazerLogin(email, senha)) {
                 showToast("Login realizado com sucesso.");
             } else {
-                showToast("Email ou senha invalidos.");
+                showToast("Email ou senha inválidos.");
             }
         });
     }
@@ -149,7 +243,7 @@ function initAuthEvents() {
             input.addEventListener("keypress", (e) => {
                 if (e.key === "Enter") {
                     e.preventDefault();
-                    btnLogin.click();
+                    if (btnLogin) btnLogin.click();
                 }
             });
         }
@@ -159,4 +253,5 @@ function initAuthEvents() {
 document.addEventListener("DOMContentLoaded", () => {
     carregarSessao();
     initAuthEvents();
+    initManageStudentsEvents();
 });
